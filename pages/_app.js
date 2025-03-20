@@ -10,6 +10,8 @@ import { Divider } from 'semantic-ui-react'
 import 'react-toastify/dist/ReactToastify.css'
 import 'semantic-ui-css/semantic.min.css'
 import '../styles/globals.css'
+import '../styles/auth.css'
+// Test modification to check Git status
 
 function MyApp ({ Component, pageProps })
 {

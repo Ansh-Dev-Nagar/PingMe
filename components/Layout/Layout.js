@@ -17,6 +17,8 @@ const { Media, MediaContextProvider } = AppMedia
 function Layout({ children, user })
 {
   const contextRef = createRef()
+  const router = useRouter()
+  const isAuthPage = router.pathname === '/login' || router.pathname === '/signup'
 
   Router.onRouteChangeStart = () => nprogress.start()
   Router.onRouteChangeComplete = () => nprogress.done()
@@ -112,10 +114,14 @@ function Layout({ children, user })
         </>
       ) : (
         <>
-          <Navbar />
-          <Container text style={{ paddingTop: '1rem' }}>
-            {children}
-          </Container>
+          {!isAuthPage && <Navbar />}
+          {isAuthPage ? (
+            <>{children}</>
+          ) : (
+            <Container text style={{ paddingTop: '1rem' }}>
+              {children}
+            </Container>
+          )}
         </>
       )}
     </>
