@@ -13,7 +13,7 @@ const HeadTags = () =>
       <link rel='stylesheet' type='text/css' href='/styles.css' />
       <link rel='stylesheet' type='text/css' href='/nprogress.css' />
 
-      <title>Personal Chat App</title>
+      <title>PingMe</title>
     </Head>
   </>
 )

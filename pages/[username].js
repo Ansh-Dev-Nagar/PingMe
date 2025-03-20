@@ -8,26 +8,26 @@ import { NoProfile } from '../components/Layout/NoData'
 import ProfileMenuTabs from '../components/Profile/ProfileMenuTabs'
 import ProfileHeader from '../components/Profile/ProfileHeader'
 import UpdateProfile from '../components/Profile/UpdateProfile'
+import Spinner from '../components/Layout/Spinner'
 
 function ProfilePage({ errorLoading, profile, user })
 {
   const router = useRouter()
-
+  const [loading, setLoading] = useState(!user)
   const [showToastr, setShowToastr] = useState(false)
-
   const [activeItem, setActiveItem] = useState('profile')
+
   const handleItemClick = clickedTab => setActiveItem(clickedTab)
-
-
-  const ownAccount = profile.user._id === user._id
-
-  if(errorLoading) return <NoProfile />
 
   useEffect(() =>
   {
     showToastr && setTimeout(() => setShowToastr(false), 4000)
-  
   }, [showToastr])
+
+  if (errorLoading) return <NoProfile />
+  if (!profile || !user) return <Spinner />
+
+  const ownAccount = profile.user._id === user._id
 
   return (
     <>
@@ -35,7 +35,7 @@ function ProfilePage({ errorLoading, profile, user })
         <Grid.Row>
           <Grid.Column>
             <ProfileMenuTabs activeItem={activeItem} handleItemClick={handleItemClick} ownAccount={ownAccount} />
-            </Grid.Column>
+          </Grid.Column>
         </Grid.Row>
 
         <Grid.Row>
@@ -61,11 +61,20 @@ ProfilePage.getInitialProps = async ctx =>
     const { username } = ctx.query
     const { token } = parseCookies(ctx)
 
-    const res = await axios.get(`${baseUrl}/api/profile/${username}`, { headers: { Authorization: token } })
+    // Fetch both profile and user data in parallel
+    const [profileRes, userRes] = await Promise.all([
+      axios.get(`${baseUrl}/api/profile/${username}`, {
+        headers: { Authorization: token }
+      }),
+      axios.get(`${baseUrl}/api/auth`, {
+        headers: { Authorization: token }
+      })
+    ])
 
-    const { profile } = res.data
+    const { profile } = profileRes.data
+    const { user } = userRes.data
 
-    return { profile }
+    return { profile, user }
   }
   catch (error)
   {
