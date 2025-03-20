@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Form, Button, Message, Segment, Divider } from 'semantic-ui-react'
+import { Form, Button, Message } from 'semantic-ui-react'
 import ImageDropDiv from '../components/Common/ImageDropDiv'
 import { FooterMessage } from '../components/Common/FooterMessage'
 import axios from 'axios'
 import baseUrl from '../utils/baseUrl'
 import { registerUser } from '../utils/authUser'
 import uploadPic from '../utils/uploadPicToCloudinary'
+import Head from 'next/head'
 
 const regexUserName = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/
 
@@ -118,105 +119,122 @@ function Signup()
 
   return (
     <>
-      <Form loading={formLoading} error={errorMsg !== null} onSubmit={handleSubmit}>
-        <Message
-          error
-          header='Oops!'
-          content={errorMsg}
-          onDismiss={() => setErrorMsg(null)}
-        />
+      <Head>
+        <title>Sign Up | PingMe</title>
+        <meta name="description" content="Create your PingMe account - Connect with friends in real-time" />
+      </Head>
 
-        <Segment>
-          <ImageDropDiv
-            mediaPreview={mediaPreview}
-            setMediaPreview={setMediaPreview}
-            setMedia={setMedia}
-            inputRef={inputRef}
-            highlighted={highlighted}
-            setHighlighted={setHighlighted}
-            handleChange={handleChange}
-          />
-          <Form.Input
-            required
-            label='Name'
-            placeholder='Name'
-            name='name'
-            value={name}
-            onChange={handleChange}
-            fluid
-            icon='user'
-            iconPosition='left'
-          />
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Create Account</h1>
+            <p>Join PingMe and start connecting with friends</p>
+          </div>
 
-          <Form.Input
-            required
-            label='Email'
-            placeholder='Email'
-            name='email'
-            value={email}
-            onChange={handleChange}
-            fluid
-            icon='envelope'
-            iconPosition='left'
-            type='email'
-          />
+          <Form loading={formLoading} error={errorMsg !== null} onSubmit={handleSubmit} className="auth-form">
+            {errorMsg && (
+              <div className="error-message">
+                <Message
+                  error
+                  header='Oops!'
+                  content={errorMsg}
+                  onDismiss={() => setErrorMsg(null)}
+                />
+              </div>
+            )}
 
-          <Form.Input
-            label='Password'
-            placeholder='Password'
-            name='password'
-            value={password}
-            onChange={handleChange}
-            fluid
-            icon={{
-                    name: 'eye',
-                    circular: true,
-                    link: true,
-                    onClick: () => setShowPassword(!showPassword)
-                  }}
-            iconPosition='left'
-            type={showPassword ? 'text' : 'password'}
-            required
-          />
+            <div className="image-drop-container">
+              <ImageDropDiv
+                mediaPreview={mediaPreview}
+                setMediaPreview={setMediaPreview}
+                setMedia={setMedia}
+                inputRef={inputRef}
+                highlighted={highlighted}
+                setHighlighted={setHighlighted}
+                handleChange={handleChange}
+              />
+            </div>
 
-          <Form.Input
-            loading={usernameLoading}
-            error={!usernameAvailable}
-            required
-            label='Username'
-            placeholder='Username'
-            value={username}
-            onChange={e => {
-                              setUsername(e.target.value)
-                              
-                              if(regexUserName.test(e.target.value))
-                              {
-                                setUsernameAvailable(true)
-                              }
-                              else
-                              {
-                                setUsernameAvailable(false)
-                              }
-                            }}
-            fluid
-            icon={usernameAvailable ? 'check' : 'close'}
-            iconPosition='left'
-          />
+            <Form.Field>
+              <label>Full Name</label>
+              <Form.Input
+                required
+                placeholder='Enter your full name'
+                name='name'
+                value={name}
+                onChange={handleChange}
+                icon='user'
+                iconPosition='left'
+              />
+            </Form.Field>
 
-          <Divider hidden />
-          <Button
-            icon='signup'
-            content='Signup'
-            type='submit'
-            color='orange'
-            disabled={submitDisabled || !usernameAvailable}
-          />
-        </Segment>
-      </Form>
+            <Form.Field>
+              <label>Email</label>
+              <Form.Input
+                required
+                placeholder='Enter your email'
+                name='email'
+                value={email}
+                onChange={handleChange}
+                icon='envelope'
+                iconPosition='left'
+                type='email'
+              />
+            </Form.Field>
 
-      <Divider hidden />
-      
-      <FooterMessage />
+            <Form.Field>
+              <label>Password</label>
+              <Form.Input
+                placeholder='Create a password'
+                name='password'
+                value={password}
+                onChange={handleChange}
+                icon={{
+                  name: showPassword ? 'eye slash' : 'eye',
+                  circular: true,
+                  link: true,
+                  onClick: () => setShowPassword(!showPassword)
+                }}
+                iconPosition='left'
+                type={showPassword ? 'text' : 'password'}
+                required
+              />
+            </Form.Field>
+
+            <Form.Field>
+              <label>Username</label>
+              <Form.Input
+                loading={usernameLoading}
+                error={!usernameAvailable}
+                required
+                placeholder='Choose a username'
+                value={username}
+                onChange={e => {
+                  setUsername(e.target.value)
+                  if(regexUserName.test(e.target.value)) {
+                    setUsernameAvailable(true)
+                  } else {
+                    setUsernameAvailable(false)
+                  }
+                }}
+                icon={usernameAvailable ? 'check' : 'close'}
+                iconPosition='left'
+              />
+            </Form.Field>
+
+            <Button
+              icon='user plus'
+              content='Create Account'
+              type='submit'
+              disabled={submitDisabled || !usernameAvailable}
+            />
+          </Form>
+
+          <div className="auth-footer">
+            <FooterMessage />
+          </div>
+        </div>
+      </div>
     </>
   )
 }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Form, Button, Message, Segment, Divider } from 'semantic-ui-react'
+import { Form, Button, Message, Segment } from 'semantic-ui-react'
 import { loginUser } from '../utils/authUser'
 import { FooterMessage } from '../components/Common/FooterMessage'
 import cookie from 'js-cookie'
+import Head from 'next/head'
 
 function Login()
 {
@@ -52,58 +53,76 @@ function Login()
 
   return (
     <>
-      <Form loading={formLoading} error={errorMsg !== null} onSubmit={handleSubmit}>
-        <Message
-          error
-          header='Oops!'
-          content={errorMsg}
-          onDismiss={() => setErrorMsg(null)}
-        />
+      <Head>
+        <title>Login | PingMe</title>
+        <meta name="description" content="Login to PingMe - Connect with friends in real-time" />
+      </Head>
 
-        <Segment>
-          <Form.Input
-            required
-            label='Email'
-            placeholder='Email'
-            name='email'
-            value={email}
-            onChange={handleChange}
-            fluid
-            icon='envelope'
-            iconPosition='left'
-            type='email'
-          />
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Welcome Back</h1>
+            <p>Sign in to continue to PingMe</p>
+          </div>
 
-          <Form.Input
-            label='Password'
-            placeholder='Password'
-            name='password'
-            value={password}
-            onChange={handleChange}
-            fluid
-            icon={{
-                    name: 'eye',
-                    circular: true,
-                    link: true,
-                    onClick: () => setShowPassword(!showPassword)
-                  }}
-            iconPosition='left'
-            type={showPassword ? 'text' : 'password'}
-            required
-          />
+          <Form loading={formLoading} error={errorMsg !== null} onSubmit={handleSubmit} className="auth-form">
+            {errorMsg && (
+              <div className="error-message">
+                <Message
+                  error
+                  header='Oops!'
+                  content={errorMsg}
+                  onDismiss={() => setErrorMsg(null)}
+                />
+              </div>
+            )}
 
-          <Divider hidden />
-          <Button
-            icon='signup'
-            content='Login'
-            type='submit'
-            color='orange'
-            disabled={submitDisabled}
-          />
-        </Segment>
-      </Form>
+            <Form.Field>
+              <label>Email</label>
+              <Form.Input
+                required
+                placeholder='Enter your email'
+                name='email'
+                value={email}
+                onChange={handleChange}
+                icon='envelope'
+                iconPosition='left'
+                type='email'
+              />
+            </Form.Field>
 
-      <FooterMessage />
+            <Form.Field>
+              <label>Password</label>
+              <Form.Input
+                placeholder='Enter your password'
+                name='password'
+                value={password}
+                onChange={handleChange}
+                icon={{
+                  name: showPassword ? 'eye slash' : 'eye',
+                  circular: true,
+                  link: true,
+                  onClick: () => setShowPassword(!showPassword)
+                }}
+                iconPosition='left'
+                type={showPassword ? 'text' : 'password'}
+                required
+              />
+            </Form.Field>
+
+            <Button
+              icon='sign in'
+              content='Sign In'
+              type='submit'
+              disabled={submitDisabled}
+            />
+          </Form>
+
+          <div className="auth-footer">
+            <FooterMessage />
+          </div>
+        </div>
+      </div>
     </>
   )
 }

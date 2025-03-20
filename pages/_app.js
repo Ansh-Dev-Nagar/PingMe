@@ -9,6 +9,7 @@ import Layout from '../components/Layout/Layout'
 import { Divider } from 'semantic-ui-react'
 import 'react-toastify/dist/ReactToastify.css'
 import 'semantic-ui-css/semantic.min.css'
+import '../styles/globals.css'
 
 function MyApp ({ Component, pageProps })
 {
