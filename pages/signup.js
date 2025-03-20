@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import { Form } from 'semantic-ui-react'
 import axios from 'axios'
 import baseUrl from '../utils/baseUrl'
 import { registerUser } from '../utils/authUser'
@@ -110,7 +111,7 @@ function Signup()
               <h1>Create Account</h1>
               <p>Join PingMe and start connecting with friends</p>
 
-              <form onSubmit={handleSubmit} className="auth-form-inner">
+              <Form onSubmit={handleSubmit}>
                 <div 
                   className="image-upload-container"
                   onClick={() => inputRef.current.click()}
@@ -215,14 +216,14 @@ function Signup()
                 >
                   Create Account
                 </button>
-              </form>
+              </Form>
 
-              <footer className="auth-footer">
-                <span>Already have an account?</span>
+              <div className="auth-footer">
+                Already have an account?
                 <Link href="/login">
-                  <a>Sign in to PingMe</a>
+                  <a>Login Here Instead</a>
                 </Link>
-              </footer>
+              </div>
             </div>
           </div>
         </div>

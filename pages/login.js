@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Form } from 'semantic-ui-react'
 import { loginUser } from '../utils/authUser'
 import cookie from 'js-cookie'
 import Head from 'next/head'
@@ -76,7 +77,7 @@ function Login() {
               <h1>Sign In</h1>
               <p>Access your PingMe account</p>
 
-              <form onSubmit={handleSubmit} className="auth-form-inner">
+              <Form onSubmit={handleSubmit}>
                 <div className="form-group">
                   <label>Email</label>
                   <input
@@ -129,14 +130,14 @@ function Login() {
                 >
                   Sign In
                 </button>
-              </form>
+              </Form>
 
-              <footer className="auth-footer">
-                <span>New to PingMe?</span>
+              <div className="auth-footer">
+                Don't have an account?
                 <Link href="/signup">
-                  <a>Create your account</a>
+                  <a>Create Account</a>
                 </Link>
-              </footer>
+              </div>
             </div>
           </div>
         </div>
