@@ -14,6 +14,7 @@ import getUserInfo from '../utils/getUserInfo'
 import newMsgSound from '../utils/newMsgSound'
 import cookie from 'js-cookie'
 import { initSidebarHover } from '../utils/sidebarHover'
+import formatMessageDate from '../utils/formatMessageDate'
 
 const scrollDivToBottom = divRef => {
   if (divRef.current !== null) {
@@ -30,7 +31,7 @@ function Messages({ chatsData, user, errorLoading })
   const [connectedUsers, setConnectedUsers] = useState([])
 
   const [messages, setMessages] = useState([])
-  const [bannerData, setBannerData] = useState({ name: '', profilePicUrl: '' })
+  const [bannerData, setBannerData] = useState({ name: '', profilePicUrl: '', isOnline: false })
 
   const divRef = useRef()
 
@@ -109,8 +110,13 @@ function Messages({ chatsData, user, errorLoading })
       socket.current.on('messagesLoaded', async ({ chat }) =>
       {
         setMessages(chat.messages)
-      
-        setBannerData({ name: chat.messagesWith.name, profilePicUrl: chat.messagesWith.profilePicUrl })
+        
+        const isOnline = connectedUsers.some(user => user.userId === chat.messagesWith._id)
+        setBannerData({ 
+          name: chat.messagesWith.name, 
+          profilePicUrl: chat.messagesWith.profilePicUrl,
+          isOnline
+        })
 
         openChatId.current = chat.messagesWith._id
 
@@ -120,8 +126,8 @@ function Messages({ chatsData, user, errorLoading })
       socket.current.on('noChatFound', async () =>
       {
         const { name, profilePicUrl } = await getUserInfo(router.query.message)
-
-        setBannerData({ name, profilePicUrl })
+        const isOnline = connectedUsers.some(user => user.userId === router.query.message)
+        setBannerData({ name, profilePicUrl, isOnline })
         setMessages([])
 
         openChatId.current = router.query.message
@@ -130,7 +136,7 @@ function Messages({ chatsData, user, errorLoading })
 
     if(socket.current && router.query.message) loadMessages()
   
-  }, [router.query.message])
+  }, [router.query.message, connectedUsers])
 
   
   const sendMsg = msg =>
@@ -292,6 +298,26 @@ function Messages({ chatsData, user, errorLoading })
     }
   }
 
+  // Group messages by date
+  const groupMessagesByDate = (messages) => {
+    const groups = {};
+    
+    messages.forEach(message => {
+      const date = new Date(message.date);
+      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = {
+          date: message.date,
+          messages: []
+        };
+      }
+      
+      groups[dateKey].messages.push(message);
+    });
+    
+    return Object.values(groups).sort((a, b) => new Date(a.date) - new Date(b.date));
+  };
 
   return (
     <div className="chat-wrapper">
@@ -322,17 +348,30 @@ function Messages({ chatsData, user, errorLoading })
               <Banner bannerData={bannerData} />
               <div className="chat-messages">
                 <div className="messages-container">
-                  {messages.length > 0 &&
-                    messages.map((message, i) => (
-                      <Message
-                        key={i}
-                        bannerProfilePic={bannerData.profilePicUrl}
-                        message={message}
-                        user={user}
-                        deleteMsg={deleteMsg}
-                        divRef={i === messages.length - 1 ? divRef : null}
-                      />
-                    ))}
+                  {messages.length > 0 && 
+                    groupMessagesByDate(messages).map((group, groupIndex) => (
+                      <div key={groupIndex} className="message-date-group">
+                        <div className="message-date-header">
+                          <div className="message-date-line"></div>
+                          <div className="message-date-text">{formatMessageDate(group.date)}</div>
+                          <div className="message-date-line"></div>
+                        </div>
+                        {group.messages.map((message, i) => (
+                          <Message
+                            key={i}
+                            bannerProfilePic={bannerData.profilePicUrl}
+                            message={message}
+                            user={user}
+                            deleteMsg={deleteMsg}
+                            divRef={
+                              groupIndex === groupMessagesByDate(messages).length - 1 && 
+                              i === group.messages.length - 1 ? divRef : null
+                            }
+                          />
+                        ))}
+                      </div>
+                    ))
+                  }
                   <div ref={divRef} />
                 </div>
               </div>

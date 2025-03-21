@@ -17,17 +17,20 @@ function Chat({ chat, connectedUsers, deleteChat }) {
       className={`chat-item ${isActive ? 'active' : ''}`}
       onClick={() => router.push(`/messages?message=${chat.messagesWith}`, undefined, { shallow: true })}
     >
-      <img className="chat-item-avatar" src={chat.profilePicUrl} alt={chat.name} />
+      <div className="chat-item-avatar-container">
+        <img className="chat-item-avatar" src={chat.profilePicUrl} alt={chat.name} />
+        {isOnline && <span className="chat-item-status-indicator"></span>}
+      </div>
       <div className="chat-item-content">
         <div className="chat-item-name">
-          {chat.name} {isOnline && <span style={{ color: '#10B981' }}>●</span>}
+          {chat.name}
         </div>
         <div className="chat-item-message">
-          {chat.lastMessage.length > 25 ? `${chat.lastMessage.substring(0, 25)}...` : chat.lastMessage}
+          {chat.lastMessage?.length > 25 ? `${chat.lastMessage.substring(0, 25)}...` : chat.lastMessage || "New conversation started"}
         </div>
       </div>
       <div className="chat-item-actions">
-        <div style={{ fontSize: '0.75rem', color: '#65676b' }}>{calculateTime(chat.date)}</div>
+        <div className="chat-item-time">{calculateTime(chat.date)}</div>
         <div className="chat-item-delete" onClick={handleDeleteChat}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>

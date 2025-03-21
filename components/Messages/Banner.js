@@ -1,7 +1,7 @@
 import React from 'react'
 
 function Banner({ bannerData }) {
-  const { name, profilePicUrl } = bannerData
+  const { name, profilePicUrl, isOnline } = bannerData
 
   return (
     <div className="chat-header">
@@ -9,8 +9,14 @@ function Banner({ bannerData }) {
       <div>
         <div className="chat-header-name">{name}</div>
         <div className="chat-header-status">
-          <span className="status-indicator"></span>
-          Online
+          {isOnline ? (
+            <>
+              <span className="status-indicator"></span>
+              Online
+            </>
+          ) : (
+            'Offline'
+          )}
         </div>
       </div>
     </div>

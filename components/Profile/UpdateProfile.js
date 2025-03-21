@@ -15,6 +15,7 @@ function UpdateProfile({ Profile }) {
   const { name, email, username } = profile;
   const [errorMsg, setErrorMsg] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [imageLoading, setImageLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
   const inputRef = useRef()
@@ -25,8 +26,23 @@ function UpdateProfile({ Profile }) {
     const { name, value, files } = e.target
 
     if(name === 'media') {
-      setMedia(files[0])
-      setMediaPreview(URL.createObjectURL(files[0]))
+      const file = files[0]
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMsg('Image too large. Maximum size is 5MB.')
+        return
+      }
+      
+      // Check file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+      if (!validTypes.includes(file.type)) {
+        setErrorMsg('Invalid file type. Please upload a JPEG, PNG, or GIF image.')
+        return
+      }
+      
+      setMedia(file)
+      setMediaPreview(URL.createObjectURL(file))
+      setErrorMsg(null)
     }
     
     setProfile(prev => ({ ...prev, [name]: value }))
@@ -39,12 +55,14 @@ function UpdateProfile({ Profile }) {
     let profilePicUrl;
 
     if(media !== null) {
+      setImageLoading(true)
       profilePicUrl = await uploadPic(media)
-    }
-
-    if(media !== null && !profilePicUrl) {
-      setLoading(false)
-      return setErrorMsg('Error Uploading Image')
+      setImageLoading(false)
+      
+      if(!profilePicUrl) {
+        setLoading(false)
+        return setErrorMsg('Error uploading image. Please try again with a smaller image or check your internet connection.')
+      }
     }
     
     // Username validation
@@ -101,6 +119,7 @@ function UpdateProfile({ Profile }) {
           header='Oops!'
           content={errorMsg}
           onDismiss={() => setErrorMsg(null)}
+          style={{ marginBottom: '2rem' }}
         />
 
         <Grid stackable>
@@ -121,7 +140,16 @@ function UpdateProfile({ Profile }) {
                     setMediaPreview={setMediaPreview}
                     setMedia={setMedia}
                     profilePicUrl={profile.profilePicUrl}
+                    setErrorMsg={setErrorMsg}
                   />
+                  
+                  {imageLoading && (
+                    <div className="image-upload-loading">
+                      <Icon name="spinner" size="large" loading />
+                      <span>Uploading image...</span>
+                    </div>
+                  )}
+                  
                   <p className="update-image-drop-text">
                     <Icon name="cloud upload" />
                     Drag and drop or click to change your profile picture
@@ -187,7 +215,13 @@ function UpdateProfile({ Profile }) {
                     content="Save Changes"
                     type="submit"
                     disabled={loading || (!media && name === Profile.user.name && username === Profile.user.username)}
+                    loading={loading}
                   />
+                  {!media && name === Profile.user.name && username === Profile.user.username && (
+                    <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                      Please make changes to your profile before saving
+                    </p>
+                  )}
                 </div>
               </div>
             </Grid.Column>

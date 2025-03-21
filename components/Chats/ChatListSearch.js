@@ -50,7 +50,6 @@ function ChatListSearch({ chats, setChats, user }) {
       messagesWith: result._id,
       name: result.name,
       profilePicUrl: result.profilePicUrl,
-      lastMessage: '',
       date: Date.now()
     }
 
@@ -68,7 +67,10 @@ function ChatListSearch({ chats, setChats, user }) {
         className="search-input"
       />
       {loading ? (
-        <div className="search-loading">Loading...</div>
+        <div className="search-loading">
+          <div className="search-loading-spinner"></div>
+          <span>Searching...</span>
+        </div>
       ) : results.length > 0 ? (
         <List verticalAlign="middle" className="search-results">
           {results.map(result => (
@@ -79,13 +81,18 @@ function ChatListSearch({ chats, setChats, user }) {
             >
               <Image avatar src={result.profilePicUrl} alt="Profile Pic" />
               <List.Content>
-                <List.Header>{result.name}</List.Header>
+                <List.Header className="search-result-name">{result.name}</List.Header>
+                <List.Description className="search-result-username">
+                  @{result.username}
+                </List.Description>
               </List.Content>
             </List.Item>
           ))}
         </List>
       ) : text.length > 0 && !loading && results.length === 0 ? (
-        <NoResults />
+        <div className="search-no-results">
+          <NoResults />
+        </div>
       ) : null}
     </div>
   )
