@@ -15,7 +15,11 @@ import newMsgSound from '../utils/newMsgSound'
 import cookie from 'js-cookie'
 import { initSidebarHover } from '../utils/sidebarHover'
 
-const scrollDivToBottom = divRef => divRef.current !== null && divRef.current.scrollIntoView({ behavior: 'smooth' })
+const scrollDivToBottom = divRef => {
+  if (divRef.current !== null) {
+    divRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+}
 
 function Messages({ chatsData, user, errorLoading })
 {
@@ -37,6 +41,14 @@ function Messages({ chatsData, user, errorLoading })
   useEffect(() => {
     if (typeof window !== 'undefined') {
       initSidebarHover();
+      
+      // Ensure chat properly adjusts to sidebar state on load
+      const sidebar = document.querySelector('.side-menu');
+      if (sidebar && sidebar.matches(':hover')) {
+        document.body.classList.add('sidebar-hovered');
+      } else {
+        document.body.classList.remove('sidebar-hovered');
+      }
     }
   }, []);
 
@@ -76,6 +88,16 @@ function Messages({ chatsData, user, errorLoading })
 
   }, [])
 
+  // Add this useEffect near the other useEffect hooks
+  useEffect(() => {
+    // Add chat-open class to body when component mounts
+    document.body.classList.add('chat-open');
+    
+    // Remove chat-open class when component unmounts
+    return () => {
+      document.body.classList.remove('chat-open');
+    };
+  }, []);
 
   // LOAD MESSAGES useEffect
   useEffect(() =>
@@ -299,17 +321,20 @@ function Messages({ chatsData, user, errorLoading })
             <>
               <Banner bannerData={bannerData} />
               <div className="chat-messages">
-                {messages.length > 0 &&
-                  messages.map((message, i) => (
-                    <Message
-                      divRef={divRef}
-                      key={i}
-                      bannerProfilePic={bannerData.profilePicUrl}
-                      message={message}
-                      user={user}
-                      deleteMsg={deleteMsg}
-                    />
-                  ))}
+                <div className="messages-container">
+                  {messages.length > 0 &&
+                    messages.map((message, i) => (
+                      <Message
+                        key={i}
+                        bannerProfilePic={bannerData.profilePicUrl}
+                        message={message}
+                        user={user}
+                        deleteMsg={deleteMsg}
+                        divRef={i === messages.length - 1 ? divRef : null}
+                      />
+                    ))}
+                  <div ref={divRef} />
+                </div>
               </div>
               <MessageInputField sendMsg={sendMsg} />
             </>

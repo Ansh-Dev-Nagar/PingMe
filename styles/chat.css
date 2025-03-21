@@ -1,18 +1,33 @@
 .chat-wrapper {
-  width: 100%;
-  height: 100%;
+  width: calc(100% - 72px);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 72px;
+  z-index: 10;
+  padding-top: 15px;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+body.sidebar-hovered .chat-wrapper {
+  width: calc(100% - 200px);
+  left: 200px;
 }
 
 .chat-container {
   display: flex;
-  height: calc(100vh - 60px);
-  margin-top: 20px;
+  height: calc(100vh - 30px);
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-left: 15px;
-  margin-right: 15px;
+  margin: 0 15px 15px 15px;
   position: relative;
+  overflow: hidden;
+  width: calc(100% - 30px); /* Account for margins */
+  max-width: 100%;
+  transition: all 0.3s ease;
 }
 
 .chat-sidebar {
@@ -83,6 +98,9 @@
   min-width: 0; /* Allows flex child to shrink below content size */
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -118,6 +136,10 @@
   overflow-y: auto;
   padding: 20px;
   background-color: #f0f2f5;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 110px); /* Adjusted for the reduced container height */
+  position: relative;
 }
 
 .message {
@@ -180,9 +202,13 @@
 }
 
 .chat-input {
-  padding: 20px;
+  padding: 15px;
   background: #fff;
   border-top: 1px solid #eaeaea;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .chat-input-container {
@@ -318,9 +344,11 @@
   .chat-container {
     margin-left: 0;
     margin-right: 0;
-    height: calc(100vh - 40px);
+    margin-bottom: 15px;
+    height: calc(100vh - 30px);
     border-radius: 0;
     flex-direction: column;
+    width: 100%;
   }
   
   .chat-sidebar {
@@ -331,6 +359,18 @@
     border-bottom: 1px solid #eaeaea;
     border-radius: 0;
   }
+  
+  .chat-wrapper {
+    width: 100%;
+    left: 0;
+    height: 100%;
+    padding-top: 15px;
+  }
+  
+  body.sidebar-hovered .chat-wrapper {
+    width: 100%;
+    left: 0;
+  }
 }
 
 /* Tablet layout */
@@ -338,4 +378,37 @@
   .chat-sidebar {
     width: 250px;
   }
+}
+
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  padding-bottom: 10px;
+}
+
+/* Add this to prevent body scrolling when chat is active */
+body.chat-open {
+  overflow: hidden;
+}
+
+/* Footer handling */
+.page-footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  z-index: 5; /* Lower than chat-wrapper */
+  transition: padding-left 0.3s ease;
+}
+
+body.sidebar-hovered .page-footer {
+  padding-left: 200px;
+}
+
+body.chat-open .page-footer {
+  display: none; /* Hide footer when chat is open to prevent overlap */
 } 

@@ -6,6 +6,8 @@ function MessageInputField({ sendMsg }) {
 
   const handleSubmit = e => {
     e.preventDefault()
+    e.stopPropagation()
+    
     if (text.trim().length === 0) return
     
     setLoading(true)
@@ -22,8 +24,13 @@ function MessageInputField({ sendMsg }) {
           placeholder="Type a message..."
           value={text}
           onChange={e => setText(e.target.value)}
+          autoComplete="off"
         />
-        <button type="submit" disabled={text.trim().length === 0 || loading}>
+        <button 
+          type="button" 
+          disabled={text.trim().length === 0 || loading}
+          onClick={handleSubmit}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"

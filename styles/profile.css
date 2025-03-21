@@ -2,20 +2,21 @@
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin: 20px;
   overflow: hidden;
   max-width: 1200px;
   width: 100%;
   padding: 0 2rem;
-  margin: 0 auto;
+  margin: 15px auto;
+  position: relative;
 }
 
 .profile-tabs-container {
   margin-bottom: 1.5rem;
+  padding-top: 15px;
 }
 
 .profile-content-container {
-  margin-bottom: 3rem;
+  margin-bottom: 15px;
 }
 
 .profile-tabs {
@@ -62,7 +63,7 @@
 
 .profile-header {
   display: flex !important;
-  padding: 3rem !important;
+  padding: 2.5rem !important;
   border-radius: 12px !important;
   background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%) !important;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08) !important;
@@ -150,7 +151,7 @@
 .profile-content {
   background-color: white;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   max-width: 1200px;
   margin: 0 auto;
@@ -419,8 +420,8 @@
 .update-profile-title {
   display: flex !important;
   align-items: center !important;
-  padding: 1.5rem 0 !important;
-  margin-bottom: 2rem !important;
+  padding: 1.25rem 0 !important;
+  margin-bottom: 1.5rem !important;
   border-bottom: 2px solid #f3f4f6 !important;
   color: #1f2937 !important;
 }
@@ -519,6 +520,11 @@
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
   outline: none !important;
+}
+
+.update-input[name="username"]:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
 }
 
 .update-input.readonly {

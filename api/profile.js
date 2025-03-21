@@ -39,7 +39,7 @@ router.post('/update', authMiddleware, async (req, res) =>
   {
     const { userId } = req
 
-    const { profilePicUrl } = req.body
+    const { profilePicUrl, name, username } = req.body
 
     let profileFields = {}
 
@@ -47,11 +47,28 @@ router.post('/update', authMiddleware, async (req, res) =>
 
     await ProfileModel.findOneAndUpdate({ user: userId }, { $set: profileFields }, { new: true })
 
-    if(profilePicUrl)
+    if(profilePicUrl || name || username)
     {
       const user = await UserModel.findById(userId)
       
-      user.profilePicUrl = profilePicUrl
+      if(profilePicUrl) {
+        user.profilePicUrl = profilePicUrl
+      }
+      
+      if(name) {
+        user.name = name
+      }
+      
+      if(username) {
+        // Check if username is already taken
+        const userWithUsername = await UserModel.findOne({ username: username.toLowerCase() })
+        
+        if(userWithUsername && userWithUsername._id.toString() !== userId) {
+          return res.status(400).send('Username already taken')
+        }
+        
+        user.username = username.toLowerCase()
+      }
       
       await user.save()
     }

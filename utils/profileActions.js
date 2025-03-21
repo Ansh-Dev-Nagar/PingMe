@@ -8,13 +8,14 @@ import Router from 'next/router'
 const Axios = axios.create({ baseURL: `${baseUrl}/api/profile`, headers: { Authorization: cookie.get('token') } })
 
 
-export const profileUpdate = async (setLoading, setError, profilePicUrl) =>
+export const profileUpdate = async (setLoading, setError, profilePicUrl, setSuccess, name, username) =>
 {
   try
   {
-    await Axios.post(`/update`, { profilePicUrl })
+    await Axios.post(`/update`, { profilePicUrl, name, username })
 
     setLoading(false)
+    setSuccess(true)
    
     Router.reload()
   }

@@ -8,10 +8,11 @@ function UpdateProfile({ Profile }) {
   const [profile, setProfile] = useState({ 
     profilePicUrl: Profile.user.profilePicUrl,
     name: Profile.user.name,
-    email: Profile.user.email
+    email: Profile.user.email,
+    username: Profile.user.username
   })
 
-  const { name, email } = profile;
+  const { name, email, username } = profile;
   const [errorMsg, setErrorMsg] = useState(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -45,13 +46,30 @@ function UpdateProfile({ Profile }) {
       setLoading(false)
       return setErrorMsg('Error Uploading Image')
     }
+    
+    // Username validation
+    if(username.trim().length < 3) {
+      setLoading(false)
+      return setErrorMsg('Username must be at least 3 characters')
+    }
+    
+    if(username.trim().length > 15) {
+      setLoading(false)
+      return setErrorMsg('Username must be less than 15 characters')
+    }
+    
+    if(!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setLoading(false)
+      return setErrorMsg('Username can only contain letters, numbers and underscores')
+    }
 
     await profileUpdate(
       setLoading, 
       setErrorMsg, 
       profilePicUrl,
       setSuccess,
-      name
+      name,
+      username
     )
   }
 
@@ -130,6 +148,23 @@ function UpdateProfile({ Profile }) {
                   </div>
                 </Form.Field>
 
+                <Form.Field className="update-form-field">
+                  <label>Username</label>
+                  <div className="input-with-icon">
+                    <Icon name="at" className="input-icon" />
+                    <input
+                      className="update-input"
+                      placeholder="Username (3-15 characters, letters, numbers, underscores)"
+                      name="username"
+                      value={username || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <small style={{ marginTop: "5px", display: "block", color: "#6b7280" }}>
+                    Your username will appear in your profile URL and cannot be changed frequently.
+                  </small>
+                </Form.Field>
+
                 <Form.Field disabled className="update-form-field">
                   <label>Email (Cannot be changed)</label>
                   <div className="input-with-icon">
@@ -151,7 +186,7 @@ function UpdateProfile({ Profile }) {
                     labelPosition="left"
                     content="Save Changes"
                     type="submit"
-                    disabled={loading || (!media && name === Profile.user.name)}
+                    disabled={loading || (!media && name === Profile.user.name && username === Profile.user.username)}
                   />
                 </div>
               </div>
