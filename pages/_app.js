@@ -13,6 +13,7 @@ import '../styles/globals.css'
 import '../styles/auth.css'
 import '../styles/sidebar.css'
 import '../styles/chat.css'
+import '../styles/profile.css'
 // Test modification to check Git status
 
 function MyApp ({ Component, pageProps })

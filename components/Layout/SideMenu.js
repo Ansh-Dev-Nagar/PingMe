@@ -6,6 +6,9 @@ import { logoutUser } from '../../utils/authUser'
 function SideMenu({ user: { email, unreadMessage, username }, pc = true }) {
   const router = useRouter()
   const isActive = route => router.pathname === route
+  const isProfileWithSettings = () => {
+    return router.query.username === username && router.query.tab === 'settings'
+  }
 
   return (
     <div className="side-menu">
@@ -32,7 +35,7 @@ function SideMenu({ user: { email, unreadMessage, username }, pc = true }) {
         </Link>
 
         <Link href={`/${username}`}>
-          <a className={`menu-item ${router.query.username === username ? 'active' : ''}`} title="My Profile">
+          <a className={`menu-item ${router.query.username === username && !router.query.tab ? 'active' : ''}`} title="My Profile">
             <div className="menu-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -45,6 +48,18 @@ function SideMenu({ user: { email, unreadMessage, username }, pc = true }) {
       </div>
 
       <div className="side-menu-bottom">
+        <Link href={`/${username}?tab=settings`}>
+          <a className={`menu-item ${isProfileWithSettings() ? 'active' : ''}`} title="Settings">
+            <div className="menu-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+            {pc && <span className="menu-label">Settings</span>}
+          </a>
+        </Link>
+
         <div className="menu-item" title="Logout" onClick={() => logoutUser(email)}>
           <div className="menu-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

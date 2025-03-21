@@ -25,3 +25,19 @@ export const profileUpdate = async (setLoading, setError, profilePicUrl) =>
     setLoading(false)
   }
 }
+
+export const updatePassword = async (setLoading, setError, setSuccess, currentPassword, newPassword) => {
+  try {
+    setLoading(true)
+    
+    await Axios.post(`/update-password`, { currentPassword, newPassword })
+    
+    setSuccess(true)
+    setLoading(false)
+  }
+  catch(error) {
+    const errorMsg = catchErrors(error)
+    setError(errorMsg)
+    setLoading(false)
+  }
+}

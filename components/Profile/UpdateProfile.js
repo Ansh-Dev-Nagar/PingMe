@@ -1,94 +1,165 @@
 import React, { useState, useRef } from 'react'
-import { Form, Button, Message, Divider } from 'semantic-ui-react'
+import { Form, Button, Message, Header, Grid, Image, Icon } from 'semantic-ui-react'
 import ImageDropDiv from '../Common/ImageDropDiv'
 import uploadPic from '../../utils/uploadPicToCloudinary'
 import { profileUpdate } from '../../utils/profileActions'
 
+function UpdateProfile({ Profile }) {
+  const [profile, setProfile] = useState({ 
+    profilePicUrl: Profile.user.profilePicUrl,
+    name: Profile.user.name,
+    email: Profile.user.email
+  })
 
-function UpdateProfile({ Profile })
-{
-  const [profile, setProfile] = useState({ profilePicUrl: Profile.user.profilePicUrl })
-
+  const { name, email } = profile;
   const [errorMsg, setErrorMsg] = useState(null)
-
   const [loading, setLoading] = useState(false)
-
+  const [success, setSuccess] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
   const inputRef = useRef()
   const [media, setMedia] = useState(null)
   const [mediaPreview, setMediaPreview] = useState(null)
 
-
-  const handleChange = e =>
-  {
+  const handleChange = e => {
     const { name, value, files } = e.target
 
-    if(name === 'media')
-    {
+    if(name === 'media') {
       setMedia(files[0])
       setMediaPreview(URL.createObjectURL(files[0]))
     }
     
     setProfile(prev => ({ ...prev, [name]: value }))
   }
-  
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+    setLoading(true)
+
+    let profilePicUrl;
+
+    if(media !== null) {
+      profilePicUrl = await uploadPic(media)
+    }
+
+    if(media !== null && !profilePicUrl) {
+      setLoading(false)
+      return setErrorMsg('Error Uploading Image')
+    }
+
+    await profileUpdate(
+      setLoading, 
+      setErrorMsg, 
+      profilePicUrl,
+      setSuccess,
+      name
+    )
+  }
 
   return (
-    <>
-      <Form
+    <div className="profile-content">
+      <Header as="h1" className="update-profile-title">
+        <Icon name="edit" />
+        <Header.Content>Update Your Profile</Header.Content>
+      </Header>
+      
+      <Form 
+        className="update-profile-form"
         error={errorMsg !== null}
+        success={success}
         loading={loading}
-        onSubmit={async e => {
-          e.preventDefault()
-          setLoading(true)
-
-          let profilePicUrl
-
-          if(media !== null)
-          {
-            profilePicUrl = await uploadPic(media)
-          }
-
-          if(media !== null && !profilePicUrl)
-          {
-            setLoading(false)
-            return setErrorMsg('Error Uploading Image')
-          }
-
-          await profileUpdate(setLoading, setErrorMsg, profilePicUrl)
-        }}
+        onSubmit={handleSubmit}
       >
         <Message
-          onDismiss={() => setErrorMsg(false)}
+          success
+          icon="check circle"
+          header="Success!"
+          content="Your profile has been updated"
+          onDismiss={() => setSuccess(false)}
+        />
+        
+        <Message
           error
-          content={errorMsg}
-          attached
+          icon="times circle"
           header='Oops!'
+          content={errorMsg}
+          onDismiss={() => setErrorMsg(null)}
         />
 
-        <ImageDropDiv
-          inputRef={inputRef}
-          highlighted={highlighted}
-          setHighlighted={setHighlighted}
-          handleChange={handleChange}
-          mediaPreview={mediaPreview}
-          setMediaPreview={setMediaPreview}
-          setMedia={setMedia}
-          profilePicUrl={profile.profilePicUrl}
-        />
+        <Grid stackable>
+          <Grid.Row>
+            <Grid.Column width={6}>
+              <div className="update-profile-picture-section">
+                <Header as="h3" className="update-section-title">Profile Picture</Header>
+                <div 
+                  className="update-image-drop-container" 
+                  style={{ background: highlighted ? 'rgba(99, 102, 241, 0.05)' : '' }}
+                >
+                  <ImageDropDiv
+                    inputRef={inputRef}
+                    highlighted={highlighted}
+                    setHighlighted={setHighlighted}
+                    handleChange={handleChange}
+                    mediaPreview={mediaPreview}
+                    setMediaPreview={setMediaPreview}
+                    setMedia={setMedia}
+                    profilePicUrl={profile.profilePicUrl}
+                  />
+                  <p className="update-image-drop-text">
+                    <Icon name="cloud upload" />
+                    Drag and drop or click to change your profile picture
+                  </p>
+                </div>
+              </div>
+            </Grid.Column>
 
+            <Grid.Column width={10}>
+              <div className="update-profile-details-section">
+                <Header as="h3" className="update-section-title">Account Information</Header>
+                
+                <Form.Field className="update-form-field">
+                  <label>Name</label>
+                  <div className="input-with-icon">
+                    <Icon name="user" className="input-icon" />
+                    <input
+                      className="update-input"
+                      placeholder="Name"
+                      name="name"
+                      value={name || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </Form.Field>
 
-        <Divider hidden />
+                <Form.Field disabled className="update-form-field">
+                  <label>Email (Cannot be changed)</label>
+                  <div className="input-with-icon">
+                    <Icon name="envelope" className="input-icon" />
+                    <input
+                      className="update-input readonly"
+                      placeholder="Email"
+                      name="email"
+                      value={email || ''}
+                      readOnly
+                    />
+                  </div>
+                </Form.Field>
 
-        <Button
-          color='blue'
-          icon='pencil alternate'
-          disabled={loading}
-          content='Submit'
-          type='submit'
-        />
+                <div className="update-button-container">
+                  <Button
+                    className="update-profile-button"
+                    icon="check"
+                    labelPosition="left"
+                    content="Save Changes"
+                    type="submit"
+                    disabled={loading || (!media && name === Profile.user.name)}
+                  />
+                </div>
+              </div>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
       </Form>
-    </>
+    </div>
   )
 }
 
