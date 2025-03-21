@@ -1,24 +1,26 @@
 import React from 'react'
-import { Segment, Grid, Image } from 'semantic-ui-react'
 
-
-function Banner({ bannerData })
-{
-  const { name, profilePicUrl } = bannerData
+function Banner({ bannerData }) {
+  const { name, profilePicUrl, isOnline } = bannerData
 
   return (
-    <Segment color='teal' attached='top'>
-      <Grid>
-        <Grid.Column floated='left' width={14}>
-          <h4>
-            <Image avatar src={profilePicUrl} style={{ marginRight: '10px' }} />
-            {name}
-          </h4>
-        </Grid.Column>
-      </Grid>
-    </Segment>
+    <div className="chat-header">
+      <img className="chat-header-avatar" src={profilePicUrl} alt={name} />
+      <div>
+        <div className="chat-header-name">{name}</div>
+        <div className="chat-header-status">
+          {isOnline ? (
+            <>
+              <span className="status-indicator"></span>
+              Online
+            </>
+          ) : (
+            'Offline'
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
-
 
 export default Banner

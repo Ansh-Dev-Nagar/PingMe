@@ -4,7 +4,6 @@ import axios from 'axios'
 import baseUrl from '../utils/baseUrl'
 import { parseCookies } from 'nookies'
 import { useRouter } from 'next/router'
-import { Segment, Divider, Comment, Grid } from 'semantic-ui-react'
 import Chat from '../components/Chats/Chat'
 import ChatListSearch from '../components/Chats/ChatListSearch'
 import { NoMessages } from '../components/Layout/NoData'
@@ -14,29 +13,51 @@ import Message from '../components/Messages/Message'
 import getUserInfo from '../utils/getUserInfo'
 import newMsgSound from '../utils/newMsgSound'
 import cookie from 'js-cookie'
+import { initSidebarHover } from '../utils/sidebarHover'
+import formatMessageDate from '../utils/formatMessageDate'
 
-const scrollDivToBottom = divRef => divRef.current !== null && divRef.current.scrollIntoView({ behaviour: 'smooth' })
+const scrollDivToBottom = divRef => {
+  if (divRef.current !== null) {
+    divRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+}
 
-function Messages({ chatsData, user })
+function Messages({ chatsData, user, errorLoading })
 {
-  const [chats, setChats] = useState(chatsData)
+  const [chats, setChats] = useState(chatsData || [])
   const router = useRouter()
 
   const socket = useRef()
   const [connectedUsers, setConnectedUsers] = useState([])
 
   const [messages, setMessages] = useState([])
-  const [bannerData, setBannerData] = useState({ name: '', profilePicUrl: '' })
+  const [bannerData, setBannerData] = useState({ name: '', profilePicUrl: '', isOnline: false })
 
   const divRef = useRef()
 
   // This ref is for persisting the state of query string in url throughout re-renders. This ref is the value of query string inside url
   const openChatId = useRef('')
 
+  // Initialize sidebar hover effect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      initSidebarHover();
+      
+      // Ensure chat properly adjusts to sidebar state on load
+      const sidebar = document.querySelector('.side-menu');
+      if (sidebar && sidebar.matches(':hover')) {
+        document.body.classList.add('sidebar-hovered');
+      } else {
+        document.body.classList.remove('sidebar-hovered');
+      }
+    }
+  }, []);
 
-  //CONNECTION useEffect
+  // If there's an error loading or no user, don't initialize socket connection
   useEffect(() =>
   {
+    if(errorLoading || !user) return;
+    
     if(!socket.current)
     {
       socket.current = io(baseUrl)
@@ -68,6 +89,16 @@ function Messages({ chatsData, user })
 
   }, [])
 
+  // Add this useEffect near the other useEffect hooks
+  useEffect(() => {
+    // Add chat-open class to body when component mounts
+    document.body.classList.add('chat-open');
+    
+    // Remove chat-open class when component unmounts
+    return () => {
+      document.body.classList.remove('chat-open');
+    };
+  }, []);
 
   // LOAD MESSAGES useEffect
   useEffect(() =>
@@ -79,8 +110,13 @@ function Messages({ chatsData, user })
       socket.current.on('messagesLoaded', async ({ chat }) =>
       {
         setMessages(chat.messages)
-      
-        setBannerData({ name: chat.messagesWith.name, profilePicUrl: chat.messagesWith.profilePicUrl })
+        
+        const isOnline = connectedUsers.some(user => user.userId === chat.messagesWith._id)
+        setBannerData({ 
+          name: chat.messagesWith.name, 
+          profilePicUrl: chat.messagesWith.profilePicUrl,
+          isOnline
+        })
 
         openChatId.current = chat.messagesWith._id
 
@@ -90,8 +126,8 @@ function Messages({ chatsData, user })
       socket.current.on('noChatFound', async () =>
       {
         const { name, profilePicUrl } = await getUserInfo(router.query.message)
-
-        setBannerData({ name, profilePicUrl })
+        const isOnline = connectedUsers.some(user => user.userId === router.query.message)
+        setBannerData({ name, profilePicUrl, isOnline })
         setMessages([])
 
         openChatId.current = router.query.message
@@ -100,7 +136,7 @@ function Messages({ chatsData, user })
 
     if(socket.current && router.query.message) loadMessages()
   
-  }, [router.query.message])
+  }, [router.query.message, connectedUsers])
 
   
   const sendMsg = msg =>
@@ -262,78 +298,93 @@ function Messages({ chatsData, user })
     }
   }
 
+  // Group messages by date
+  const groupMessagesByDate = (messages) => {
+    const groups = {};
+    
+    messages.forEach(message => {
+      const date = new Date(message.date);
+      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = {
+          date: message.date,
+          messages: []
+        };
+      }
+      
+      groups[dateKey].messages.push(message);
+    });
+    
+    return Object.values(groups).sort((a, b) => new Date(a.date) - new Date(b.date));
+  };
 
   return (
-    <>
-      <Segment padded basic size='huge' style={{ marginTop: '5px' }}>
-        <Divider hidden />
-
-        <div style={{ marginBottom: '10px' }}>
-          <ChatListSearch chats={chats} setChats={setChats} user={user} />
+    <div className="chat-wrapper">
+      <div className="chat-container">
+        <div className="chat-sidebar">
+          <div className="chat-search">
+            <ChatListSearch chats={chats} setChats={setChats} user={user} />
+          </div>
+          <div className="chat-list">
+            {chats.length > 0 ? (
+              chats.map((chat, i) => (
+                <Chat
+                  key={i}
+                  chat={chat}
+                  connectedUsers={connectedUsers}
+                  deleteChat={deleteChat}
+                />
+              ))
+            ) : (
+              <NoMessages />
+            )}
+          </div>
         </div>
 
-        <Divider hidden />
-        <Divider hidden />
-
-        {chats.length > 0 ? (
-          <>
-            <Grid stackable>
-              <Grid.Column width={4}>
-                <Comment.Group size='big'>
-                  <Segment raised style={{ overflow: 'auto', maxHeight: '32rem' }}>
-                    {chats.map((chat, i) => (
-                      <Chat
-                        key={i}
-                        chat={chat}
-                        connectedUsers={connectedUsers}
-                        deleteChat={deleteChat}
-                      />
-                    ))}
-                  </Segment>
-                </Comment.Group>
-              </Grid.Column>
-
-              <Grid.Column width={12}>
-                {router.query.message && (
-                  <>
-                    <div
-                      style={{
-                        overflow: 'auto',
-                        overflowX: 'hidden',
-                        maxHeight: '40rem',
-                        height: '40rem',
-                        backgroundColor: 'whitesmoke',
-                        boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)'
-                      }}
-                    >
-                      <div style={{ position: 'sticky', top: '0' }}>
-                        <Banner bannerData={bannerData} />
-                      </div>
-
-                      {messages.length > 0 &&
-                        messages.map((message, i) => (
+        <div className="chat-main">
+          {router.query.message ? (
+            <>
+              <Banner bannerData={bannerData} />
+              <div className="chat-messages">
+                <div className="messages-container">
+                  {messages.length > 0 && 
+                    groupMessagesByDate(messages).map((group, groupIndex) => (
+                      <div key={groupIndex} className="message-date-group">
+                        <div className="message-date-header">
+                          <div className="message-date-line"></div>
+                          <div className="message-date-text">{formatMessageDate(group.date)}</div>
+                          <div className="message-date-line"></div>
+                        </div>
+                        {group.messages.map((message, i) => (
                           <Message
-                            divRef={divRef}
                             key={i}
                             bannerProfilePic={bannerData.profilePicUrl}
                             message={message}
                             user={user}
                             deleteMsg={deleteMsg}
+                            divRef={
+                              groupIndex === groupMessagesByDate(messages).length - 1 && 
+                              i === group.messages.length - 1 ? divRef : null
+                            }
                           />
                         ))}
-                    </div>
-
-                    <MessageInputField sendMsg={sendMsg} />
-                  </>
-                )}
-              </Grid.Column>
-            </Grid>
-          </>
-        ) : (
-          <NoMessages />
-        )}
-      </Segment>
-    </>
+                      </div>
+                    ))
+                  }
+                  <div ref={divRef} />
+                </div>
+              </div>
+              <MessageInputField sendMsg={sendMsg} />
+            </>
+          ) : (
+            <div className="chat-messages" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <p>Select a chat to start messaging</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -342,9 +393,13 @@ Messages.getInitialProps = async ctx =>
   try
   {
     const { token } = parseCookies(ctx)
+    
+    // Make sure token exists
+    if (!token) {
+      return { errorLoading: true }
+    }
 
     const res = await axios.get(`${baseUrl}/api/chats`, { headers: { Authorization: token } })
-
     return { chatsData: res.data }
   }
   catch(error)

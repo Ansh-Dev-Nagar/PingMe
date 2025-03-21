@@ -9,13 +9,14 @@ const uploadPic = async media =>
     form.append('upload_preset', 'personal-chat')
     form.append('cloud_name', 'dqs3cld9t')
 
-    const res = await axios.post(process.env.CLOUDINARY_URL, form)
+    const res = await axios.post('https://api.cloudinary.com/v1_1/dqs3cld9t/image/upload', form)
   
     return res.data.url
   }
   catch (error)
   {
-    return
+    console.error("Error uploading image:", error.message || "Unknown error")
+    return null
   }
 }
 

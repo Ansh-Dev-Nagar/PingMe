@@ -3,11 +3,12 @@ import { useRouter } from 'next/router'
 import axios from 'axios'
 import baseUrl from '../utils/baseUrl'
 import { parseCookies } from 'nookies'
-import { Grid } from 'semantic-ui-react'
+import { Grid, Header, Icon } from 'semantic-ui-react'
 import { NoProfile } from '../components/Layout/NoData'
 import ProfileMenuTabs from '../components/Profile/ProfileMenuTabs'
 import ProfileHeader from '../components/Profile/ProfileHeader'
 import UpdateProfile from '../components/Profile/UpdateProfile'
+import Settings from '../components/Profile/Settings'
 import Spinner from '../components/Layout/Spinner'
 
 function ProfilePage({ errorLoading, profile, user })
@@ -21,6 +22,13 @@ function ProfilePage({ errorLoading, profile, user })
 
   useEffect(() =>
   {
+    if (router.query.tab) {
+      setActiveItem(router.query.tab);
+    }
+  }, [router.query.tab]);
+
+  useEffect(() =>
+  {
     showToastr && setTimeout(() => setShowToastr(false), 4000)
   }, [showToastr])
 
@@ -31,25 +39,27 @@ function ProfilePage({ errorLoading, profile, user })
 
   return (
     <>
-      <Grid stackable>
-        <Grid.Row>
-          <Grid.Column>
-            <ProfileMenuTabs activeItem={activeItem} handleItemClick={handleItemClick} ownAccount={ownAccount} />
-          </Grid.Column>
-        </Grid.Row>
+      <div className="profile-container">
+        <div className="profile-tabs-container">
+          <ProfileMenuTabs activeItem={activeItem} handleItemClick={handleItemClick} ownAccount={ownAccount} />
+        </div>
 
-        <Grid.Row>
-          <Grid.Column>
-            {activeItem === 'profile' && (
-              <>
-                <ProfileHeader profile={profile} />
-              </>
-            )}
+        <div className="profile-content-container">
+          {activeItem === 'profile' && (
+            <>
+              <Header as="h1" className="update-profile-title">
+                <Icon name="user" />
+                <Header.Content>Profile</Header.Content>
+              </Header>
+              <ProfileHeader profile={profile} />
+            </>
+          )}
 
-            {activeItem === 'updateProfile' && <UpdateProfile Profile={profile} />}
-          </Grid.Column>
-        </Grid.Row>
-      </Grid>
+          {activeItem === 'updateProfile' && <UpdateProfile Profile={profile} />}
+          
+          {activeItem === 'settings' && ownAccount && <Settings user={user} />}
+        </div>
+      </div>
     </>
   )
 }
