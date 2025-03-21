@@ -4,7 +4,6 @@ import axios from 'axios'
 import baseUrl from '../utils/baseUrl'
 import { parseCookies } from 'nookies'
 import { useRouter } from 'next/router'
-import { Segment, Divider, Comment, Grid } from 'semantic-ui-react'
 import Chat from '../components/Chats/Chat'
 import ChatListSearch from '../components/Chats/ChatListSearch'
 import { NoMessages } from '../components/Layout/NoData'
@@ -14,12 +13,13 @@ import Message from '../components/Messages/Message'
 import getUserInfo from '../utils/getUserInfo'
 import newMsgSound from '../utils/newMsgSound'
 import cookie from 'js-cookie'
+import { initSidebarHover } from '../utils/sidebarHover'
 
-const scrollDivToBottom = divRef => divRef.current !== null && divRef.current.scrollIntoView({ behaviour: 'smooth' })
+const scrollDivToBottom = divRef => divRef.current !== null && divRef.current.scrollIntoView({ behavior: 'smooth' })
 
-function Messages({ chatsData, user })
+function Messages({ chatsData, user, errorLoading })
 {
-  const [chats, setChats] = useState(chatsData)
+  const [chats, setChats] = useState(chatsData || [])
   const router = useRouter()
 
   const socket = useRef()
@@ -33,10 +33,18 @@ function Messages({ chatsData, user })
   // This ref is for persisting the state of query string in url throughout re-renders. This ref is the value of query string inside url
   const openChatId = useRef('')
 
+  // Initialize sidebar hover effect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      initSidebarHover();
+    }
+  }, []);
 
-  //CONNECTION useEffect
+  // If there's an error loading or no user, don't initialize socket connection
   useEffect(() =>
   {
+    if(errorLoading || !user) return;
+    
     if(!socket.current)
     {
       socket.current = io(baseUrl)
@@ -264,76 +272,55 @@ function Messages({ chatsData, user })
 
 
   return (
-    <>
-      <Segment padded basic size='huge' style={{ marginTop: '5px' }}>
-        <Divider hidden />
-
-        <div style={{ marginBottom: '10px' }}>
-          <ChatListSearch chats={chats} setChats={setChats} user={user} />
+    <div className="chat-wrapper">
+      <div className="chat-container">
+        <div className="chat-sidebar">
+          <div className="chat-search">
+            <ChatListSearch chats={chats} setChats={setChats} user={user} />
+          </div>
+          <div className="chat-list">
+            {chats.length > 0 ? (
+              chats.map((chat, i) => (
+                <Chat
+                  key={i}
+                  chat={chat}
+                  connectedUsers={connectedUsers}
+                  deleteChat={deleteChat}
+                />
+              ))
+            ) : (
+              <NoMessages />
+            )}
+          </div>
         </div>
 
-        <Divider hidden />
-        <Divider hidden />
-
-        {chats.length > 0 ? (
-          <>
-            <Grid stackable>
-              <Grid.Column width={4}>
-                <Comment.Group size='big'>
-                  <Segment raised style={{ overflow: 'auto', maxHeight: '32rem' }}>
-                    {chats.map((chat, i) => (
-                      <Chat
-                        key={i}
-                        chat={chat}
-                        connectedUsers={connectedUsers}
-                        deleteChat={deleteChat}
-                      />
-                    ))}
-                  </Segment>
-                </Comment.Group>
-              </Grid.Column>
-
-              <Grid.Column width={12}>
-                {router.query.message && (
-                  <>
-                    <div
-                      style={{
-                        overflow: 'auto',
-                        overflowX: 'hidden',
-                        maxHeight: '40rem',
-                        height: '40rem',
-                        backgroundColor: 'whitesmoke',
-                        boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)'
-                      }}
-                    >
-                      <div style={{ position: 'sticky', top: '0' }}>
-                        <Banner bannerData={bannerData} />
-                      </div>
-
-                      {messages.length > 0 &&
-                        messages.map((message, i) => (
-                          <Message
-                            divRef={divRef}
-                            key={i}
-                            bannerProfilePic={bannerData.profilePicUrl}
-                            message={message}
-                            user={user}
-                            deleteMsg={deleteMsg}
-                          />
-                        ))}
-                    </div>
-
-                    <MessageInputField sendMsg={sendMsg} />
-                  </>
-                )}
-              </Grid.Column>
-            </Grid>
-          </>
-        ) : (
-          <NoMessages />
-        )}
-      </Segment>
-    </>
+        <div className="chat-main">
+          {router.query.message ? (
+            <>
+              <Banner bannerData={bannerData} />
+              <div className="chat-messages">
+                {messages.length > 0 &&
+                  messages.map((message, i) => (
+                    <Message
+                      divRef={divRef}
+                      key={i}
+                      bannerProfilePic={bannerData.profilePicUrl}
+                      message={message}
+                      user={user}
+                      deleteMsg={deleteMsg}
+                    />
+                  ))}
+              </div>
+              <MessageInputField sendMsg={sendMsg} />
+            </>
+          ) : (
+            <div className="chat-messages" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <p>Select a chat to start messaging</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -342,9 +329,13 @@ Messages.getInitialProps = async ctx =>
   try
   {
     const { token } = parseCookies(ctx)
+    
+    // Make sure token exists
+    if (!token) {
+      return { errorLoading: true }
+    }
 
     const res = await axios.get(`${baseUrl}/api/chats`, { headers: { Authorization: token } })
-
     return { chatsData: res.data }
   }
   catch(error)

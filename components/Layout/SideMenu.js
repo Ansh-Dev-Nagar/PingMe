@@ -42,18 +42,6 @@ function SideMenu({ user: { email, unreadMessage, username }, pc = true }) {
             {pc && <span className="menu-label">Profile</span>}
           </a>
         </Link>
-
-        <Link href="/search">
-          <a className={`menu-item ${isActive('/search') ? 'active' : ''}`} title="Search Users">
-            <div className="menu-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-            </div>
-            {pc && <span className="menu-label">Search</span>}
-          </a>
-        </Link>
       </div>
 
       <div className="side-menu-bottom">

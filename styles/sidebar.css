@@ -184,6 +184,13 @@
   margin-left: 72px;
   min-height: 100vh;
   transition: margin-left 0.3s ease;
+  width: calc(100% - 72px);
+}
+
+.side-menu:hover ~ .main-content,
+body.sidebar-hovered .main-content {
+  margin-left: 200px;
+  width: calc(100% - 200px);
 }
 
 /* Override any media queries */
@@ -194,5 +201,17 @@
   
   .side-menu:hover {
     width: 200px !important;
+  }
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 768px) {
+  .side-menu {
+    display: none;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    width: 100%;
   }
 } 

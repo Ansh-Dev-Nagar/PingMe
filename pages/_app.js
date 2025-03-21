@@ -11,6 +11,8 @@ import 'react-toastify/dist/ReactToastify.css'
 import 'semantic-ui-css/semantic.min.css'
 import '../styles/globals.css'
 import '../styles/auth.css'
+import '../styles/sidebar.css'
+import '../styles/chat.css'
 // Test modification to check Git status
 
 function MyApp ({ Component, pageProps })
@@ -56,14 +58,12 @@ MyApp.getInitialProps = async ({ Component, ctx }) =>
 
   const indexRoute = ctx.pathname === '/'
   
-
   if(!token)
   {
-    destroyCookie(ctx, 'token')
-
-    const login = protectedRoutes || indexRoute
-    
-    login && redirectUser(ctx, '/login')
+    // Only redirect if we're on a protected route
+    if (protectedRoutes) {
+      redirectUser(ctx, '/login')
+    }
   }
   else
   {
@@ -78,14 +78,20 @@ MyApp.getInitialProps = async ({ Component, ctx }) =>
 
       const { user } = res.data
 
-      if(user) !protectedRoutes && redirectUser(ctx, '/messages')
+      // Only redirect if user exists and we're not on a protected route
+      if(user && !protectedRoutes && ctx.pathname !== '/login' && ctx.pathname !== '/signup') {
+        redirectUser(ctx, '/messages')
+      }
 
       pageProps.user = user
     }
     catch(error)
     {
       destroyCookie(ctx, 'token')
-      redirectUser(ctx, '/login')
+      // Only redirect if we're on a protected route
+      if (protectedRoutes) {
+        redirectUser(ctx, '/login')
+      }
     }
   }
 

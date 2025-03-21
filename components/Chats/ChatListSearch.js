@@ -1,142 +1,93 @@
-import React, { useState, useEffect } from 'react'
-import { List, Image, Search } from 'semantic-ui-react'
+import React, { useState } from 'react'
+import { useRouter } from 'next/router'
 import axios from 'axios'
 import cookie from 'js-cookie'
-import { useRouter } from 'next/router'
 import baseUrl from '../../utils/baseUrl'
+import { List, Image } from 'semantic-ui-react'
+import { NoResults } from '../Layout/NoData'
 
-let cancel
-
-function ChatListSearch({ chats, setChats, user })
-{
+function ChatListSearch({ chats, setChats, user }) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState([])
   const router = useRouter()
 
-
-  const handleChange = async e =>
-  {
+  const handleChange = e => {
     const { value } = e.target
-
     setText(value)
+
+    if (value.length === 0) return setResults([])
+
+    if (value.trim().length === 0) return
+
     setLoading(true)
 
+    try {
+      (async () => {
+        const res = await axios.get(`${baseUrl}/api/search/${value}`, {
+          headers: { Authorization: cookie.get('token') }
+        })
 
-    if(value.length === 0)
-    return setText(value)
-
-    if(value.trim().length === 0)
-    return
-
-    try
-    {
-      cancel && cancel()
-      const CancelToken = axios.CancelToken
-      const token = cookie.get('token')
-
-      const res = await axios.get(`${baseUrl}/api/search/${value}`,
-      {
-        headers: { Authorization: token },
-        cancelToken: new CancelToken(canceler => cancel = canceler)
-      })
-
-      if(res.data.length === 0)
-      {
-        results.length > 0 && setResults([])
-
-        return setLoading(false)
-      }
-
-       const result = res.data.filter((data) =>
-                                      {
-                                        if(data.username !== user.username)
-                                        return true
-
-                                        return false
-                                      })
-
-      setResults(result)
-
-    }
-    catch(error)
-    {
-      alert('Error Searching')
+        setResults(res.data)
+      })()
+    } catch (error) {
+      console.error(error)
     }
 
     setLoading(false)
   }
 
+  const addChat = result => {
+    const alreadyInChat =
+      chats.length > 0 &&
+      chats.filter(chat => chat.messagesWith === result._id).length > 0
 
-  const addChat = result =>
-  {
-    let flag = false
-
-    chats.filter(chat =>
-    {
-      if(chat.messagesWith.toString() === result._id.toString())
-      flag = true
-    })
-
-    const alreadyInChat = flag
-
-    if(alreadyInChat)
-    {
+    if (alreadyInChat) {
       return router.push(`/messages?message=${result._id}`)
     }
-    else
-    {
-      const newChat = {
-                        messagesWith: result._id,
-                        name: result.name,
-                        profilePicUrl: result.profilePicUrl,
-                        lastMessage: '',
-                        date: Date.now()
-                      }
 
-      setChats(prev => [newChat, ...prev])
-
-      return router.push(`/messages?message=${result._id}`)
+    const newChat = {
+      messagesWith: result._id,
+      name: result.name,
+      profilePicUrl: result.profilePicUrl,
+      lastMessage: '',
+      date: Date.now()
     }
+
+    setChats(prev => [newChat, ...prev])
+
+    return router.push(`/messages?message=${result._id}`)
   }
 
-
-  useEffect(() =>
-  {
-    if(text.length === 0 && loading)
-    setLoading(false)
-
-  }, [text])
-
-
   return (
-    <Search
-      onBlur={() =>
-              {
-                results.length > 0 && setResults([])
-                loading && setLoading(false)
-                setText('')
-              }}
-      loading={loading}
-      value={text}
-      resultRenderer={ResultRenderer}
-      results={results}
-      onSearchChange={handleChange}
-      minCharacters={1}
-      onResultSelect={(e, data) => addChat(data.result)}
-    />
-  )
-}
-
-const ResultRenderer = ({ _id, profilePicUrl, name }) =>
-{
-  return (
-    <List key={_id}>
-      <List.Item>
-        <Image src={profilePicUrl} alt='ProfilePic' avatar />
-        <List.Content header={name} as='a' />
-      </List.Item>
-    </List>
+    <div className="search-wrapper">
+      <input
+        placeholder="Search for chats"
+        value={text}
+        onChange={handleChange}
+        className="search-input"
+      />
+      {loading ? (
+        <div className="search-loading">Loading...</div>
+      ) : results.length > 0 ? (
+        <List verticalAlign="middle" className="search-results">
+          {results.map(result => (
+            <List.Item
+              key={result._id}
+              onClick={() => addChat(result)}
+              className="search-result-item"
+            >
+              <Image avatar src={result.profilePicUrl} alt="Profile Pic" />
+              <List.Content>
+                <List.Header>{result.name}</List.Header>
+              </List.Content>
+            </List.Item>
+          ))}
+        </List>
+      ) : text.length > 0 && !loading && results.length === 0 ? (
+        <NoResults />
+      ) : null}
+    </div>
   )
 }
 
